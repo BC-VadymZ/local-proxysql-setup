@@ -50,19 +50,20 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/a
 minikube addons enable dashboard
 
 # Get dashboard URL (ctrl+c to exit if stuck)
-minikube dashboard --url
+➜  ~ minikube dashboard
+🔌  Enabling dashboard ...
+    ▪ Using image docker.io/kubernetesui/dashboard:v2.7.0
+    ▪ Using image docker.io/kubernetesui/metrics-scraper:v1.0.8
+💡  Some dashboard features require the metrics-server addon. To enable all features please run:
+
+	minikube addons enable metrics-server
+
 
 🤔  Verifying dashboard health ...
 🚀  Launching proxy ...
 🤔  Verifying proxy health ...
-http://192.168.1.229:45536/api/v1/namespaces/kube-system/services/http:kubernetes-dashboard:/proxy/
-
-# Start dashboard on local IP (forwarded from within Minikube VM) - default port is 8001
-# and the address in this example 192.168.1.229 is the host physical machine IP (not the VM)
-kubectl proxy --address=192.168.1.229 --accept-hosts='^.*'
+🎉  Opening http://127.0.0.1:61172/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/ in your default browser...
 ```
-
-Combining the URL and the `kubectl proxy --address` on default port 8001 the resulting url is: http://192.168.1.229:8001/api/v1/namespaces/kube-system/services/http:kubernetes-dashboard:/proxy/ (or alternatively use the SSH tunnel if on Scaleway and connect to your 192.168.1.229:8001)
 
 ## Deploying with Helm
 
@@ -139,3 +140,8 @@ kubectl rollout restart deployment/proxysql-cluster
 minikube start
 minikube delete
 ```
+
+### Useful links
+
+https://www.youtube.com/watch?v=UCvgHO9TtMs
+https://proxysql.com/blog/new-schemaname-routing-algorithm/
