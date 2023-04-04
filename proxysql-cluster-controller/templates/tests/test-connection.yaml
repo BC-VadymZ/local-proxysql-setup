@@ -11,5 +11,5 @@ spec:
     - name: mysqladmin
       image: busybox
       command: ['mysqladmin']
-      args:  ['ping','--host','192.168.1.229','--port','6032','--user','radmin','--password','radmin']
+      args:  ['ping','--host','127.0.0.1','--port','6032','--user','radmin','--password','radmin']
   restartPolicy: Never

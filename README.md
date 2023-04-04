@@ -22,24 +22,82 @@ Tools used for sample deployment:
 
 - https://helm.sh/docs/intro/install/
 
-#### TL;DR
-
-```
-curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-chmod 700 get_helm.sh
-./get_helm.sh
-```
-
 ## Configuring environment
 
 ### Minikube
+
+Install cilium-cli
+
+```
+brew install cilium-cli
+```
+
+Configure podman:
+
+```
+podman machine init --cpus 2
+podman machine set --rootful
+podman machine start
+Starting machine "podman-machine-default"
+Waiting for VM ...
+Mounting volume... /Users:/Users
+Mounting volume... /private:/private
+Mounting volume... /var/folders:/var/folders
+API forwarding listening on: /Users/me/.local/share/containers/podman/machine/podman-machine-default/podman.sock
+
+The system helper service is not installed; the default Docker API socket
+address can't be used by podman. If you would like to install it run the
+following commands:
+
+	sudo /opt/homebrew/Cellar/podman/4.4.2/bin/podman-mac-helper install
+	podman machine stop; podman machine start
+
+You can still connect Docker API clients by setting DOCKER_HOST using the
+following command in your terminal session:
+
+	export DOCKER_HOST='unix:///Users/me/.local/share/containers/podman/machine/podman-machine-default/podman.sock'
+
+Machine "podman-machine-default" started successfully
+```
 
 ```
 minikube config set memory 6144
 minikube config set cpus 2
 minikube config set disk-size 50000MB
 minikube config set vm-driver podman
-minikube start 
+```
+
+```
+➜  ~ minikube start --network-plugin=cni --cni=cilium --driver=podman --container-runtime=cri-o
+😄  minikube v1.29.0 on Darwin 13.2 (arm64)
+❗  Both driver=podman and vm-driver=podman have been set.
+
+    Since vm-driver is deprecated, minikube will default to driver=podman.
+
+    If vm-driver is set in the global config, please run "minikube config unset vm-driver" to resolve this warning.
+
+✨  Using the podman (experimental) driver based on user configuration
+❗  With --network-plugin=cni, you will need to provide your own CNI. See --cni flag as a user-friendly alternative
+📌  Using Podman driver with root privileges
+👍  Starting control plane node minikube in cluster minikube
+🚜  Pulling base image ...
+💾  Downloading Kubernetes v1.26.1 preload ...
+    > preloaded-images-k8s-v18-v1...:  359.07 MiB / 359.07 MiB  100.00% 7.46 Mi
+E0404 14:19:40.542670   64028 cache.go:188] Error downloading kic artifacts:  not yet implemented, see issue #8426
+🔥  Creating podman container (CPUs=2, Memory=1955MB) ...
+🎁  Preparing Kubernetes v1.26.1 on CRI-O 1.24.4 ...
+E0404 14:21:25.412511   64028 start.go:131] Unable to get host IP: RoutableHostIPFromInside is currently only implemented for linux
+    ▪ Generating certificates and keys ...
+    ▪ Booting up control plane ...
+    ▪ Configuring RBAC rules ...
+🔗  Configuring Cilium (Container Networking Interface) ...
+    ▪ Using image gcr.io/k8s-minikube/storage-provisioner:v5
+🔎  Verifying Kubernetes components...
+🌟  Enabled addons: storage-provisioner, default-storageclass
+🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+```
+
+```
 minikube status
 ```
 
@@ -85,26 +143,32 @@ Password : root
 ##### Install ProxySQL
 
 ```
-helm install proxysql-cluster ./proxysql-cluster
+helm install proxysql-cluster-controller ./proxysql-cluster-controller
+helm install proxysql-cluster-passive ./proxysql-cluster-passive
 ```
 
 ##### Change settings and re-deploy
 
 ```
-vi proxysql-cluster/files/proxysql.cnf 
-helm upgrade proxysql-cluster ./proxysql-cluster
+vi proxysql-cluster-controller/files/proxysql.cnf 
+helm upgrade proxysql-cluster-controller ./proxysql-cluster-controller
+
+vi pproxysql-cluster-passive/files/proxysql.cnf 
+helm upgrade proxysql-cluster-passive ./proxysql-cluster-passive
 ```
 
 Optionally do a rolling restart (note, templates are configured to re-deploy on configmap changes, i.e. this step is not required unless configmap checksum is removed)
 
 ```
-kubectl rollout restart deployment/proxysql-cluster
+kubectl rollout restart deployment/proxysql-cluster-controller
+kubectl rollout restart deployment/proxysql-cluster-passive
 ```
 
 ##### Delete `proxysql-cluster` deployment
 
 ```
-helm delete proxysql-cluster
+helm delete proxysql-cluster-controller
+helm delete  proxysql-cluster-passive
 ```
 
 ##### Connect to ProxySQL 
@@ -143,5 +207,6 @@ minikube delete
 
 ### Useful links
 
-https://www.youtube.com/watch?v=UCvgHO9TtMs
-https://proxysql.com/blog/new-schemaname-routing-algorithm/
+- https://www.youtube.com/watch?v=UCvgHO9TtMs
+- https://proxysql.com/blog/new-schemaname-routing-algorithm/
+- https://github.com/bitnami/charts
