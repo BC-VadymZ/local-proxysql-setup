@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 3
+replicaCount: 2
 
 image:
   repository: proxysql/proxysql
@@ -23,7 +23,7 @@ ingress:
     # kubernetes.io/ingress.class: proxysql
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: 192.168.1.229
+    - host: 10.18.120.41
       paths: []
 
   tls: []
