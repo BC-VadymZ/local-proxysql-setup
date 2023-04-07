@@ -14,17 +14,18 @@ nameOverride: ""
 fullnameOverride: ""
 
 service:
-  type: ClusterIP
-  port: 6032
+  type: NodePort
+  port: 6033
 
 ingress:
   enabled: false
   annotations: {}
-    # kubernetes.io/ingress.class: proxysql
-    # kubernetes.io/tls-acme: "true"
+  #  kubernetes.io/ingress.class: proxysql
+  #  kubernetes.io/tls-acme: "true"
   hosts:
-    - host: 10.18.120.41
-      paths: []
+    - host: proxysql-cluster-controller
+      paths:
+        - /
 
   tls: []
   #  - secretName: chart-example-tls
