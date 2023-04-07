@@ -26,10 +26,12 @@ Tools used for sample deployment:
 
 ### Minikube
 
-Install cilium-cli
+Install cilium-cli, minikube, podman
 
 ```
+brew install minikube
 brew install cilium-cli
+brew install podman
 ```
 
 Configure podman:
@@ -68,7 +70,7 @@ minikube config set vm-driver podman
 ```
 
 ```
-➜  ~ minikube start --network-plugin=cni --cni=cilium --driver=podman --container-runtime=cri-o
+➜  ~ minikube start --driver=podman --ports=127.0.0.1:30080:30080
 😄  minikube v1.29.0 on Darwin 13.2 (arm64)
 ❗  Both driver=podman and vm-driver=podman have been set.
 
@@ -170,11 +172,24 @@ kubectl rollout restart deployment/proxysql-cluster-passive
 helm delete proxysql-cluster-controller
 helm delete  proxysql-cluster-passive
 ```
+##### Change node port to 30080
+
+```
+ KUBE_EDITOR="nano" kubectl edit svc -n default proxysql-cluster-controller
+```
+
+```
+  ports:
+  - name: proxysql
+    nodePort: 30080
+    port: 6033
+    protocol: TCP
+```
 
 ##### Connect to ProxySQL 
 
 ```
-mysql -h$(minikube ip) -P26033 -uroot -proot
+mysql -h127.0.0.1 -P30080 -uroot -proot
 ```
 
 ## Useful commands
@@ -196,6 +211,17 @@ kubectl get deployment
 kubectl get pods --all-namespaces
 kubectl describe service <servicename>
 kubectl rollout restart deployment/proxysql-cluster
+```
+
+### Podman
+
+```
+podman ps -a --pod
+podman port minikube
+podman info
+podman network ls
+podman machine stop
+podman machine start
 ```
 
 ### Minicube
