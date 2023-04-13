@@ -7,10 +7,16 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.service.mysqlport }}
+      nodePort: 32760
       targetPort: 6033
       protocol: TCP
-      name: proxysql
+      name: mysqlproxysql
+    - port: {{ .Values.service.adminport }}
+      nodePort: 32761
+      targetPort: 6032
+      protocol: TCP
+      name: adminproxysql
   selector:
     app.kubernetes.io/name: {{ include "proxysql.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

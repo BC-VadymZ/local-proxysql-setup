@@ -26,12 +26,12 @@ Tools used for sample deployment:
 
 ### Minikube
 
-Install cilium-cli, minikube, podman
+Install minikube, podman
 
 ```
 brew install minikube
-brew install cilium-cli
 brew install podman
+brew install podman-desktop
 ```
 
 Configure podman:
@@ -236,3 +236,50 @@ minikube delete
 - https://www.youtube.com/watch?v=UCvgHO9TtMs
 - https://proxysql.com/blog/new-schemaname-routing-algorithm/
 - https://github.com/bitnami/charts
+
+200/200
+
++---------------------------+----------------+
+| Variable_Name             | Variable_Value |
++---------------------------+----------------+
+| Query_Processor_time_nsec | 25301822       |
++---------------------------+----------------+
+
+25.3 
+
+2000/2000
++---------------------------+----------------+
+| Variable_Name             | Variable_Value |
++---------------------------+----------------+
+| Query_Processor_time_nsec | 182883924      |
++---------------------------+----------------+
+
+182
+
+10000/10000
++---------------------------+----------------+
+| Variable_Name             | Variable_Value |
++---------------------------+----------------+
+| Query_Processor_time_nsec | 8549483032     |
++---------------------------+----------------+
+
+8549
+
+100000/100000
+
++---------------------------+----------------+
+| Variable_Name             | Variable_Value |
++---------------------------+----------------+
+| Query_Processor_time_nsec | 153470631457   |
++---------------------------+----------------+
+
+153470
+
+50000/50000
++---------------------------+----------------+
+| Variable_Name             | Variable_Value |
++---------------------------+----------------+
+| Query_Processor_time_nsec | 103610048025   |
++---------------------------+----------------+
+
+103610
