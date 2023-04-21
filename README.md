@@ -237,49 +237,50 @@ minikube delete
 - https://proxysql.com/blog/new-schemaname-routing-algorithm/
 - https://github.com/bitnami/charts
 
-200/200
 
-+---------------------------+----------------+
-| Variable_Name             | Variable_Value |
-+---------------------------+----------------+
-| Query_Processor_time_nsec | 25301822       |
-+---------------------------+----------------+
+➜  ~ podman stats -a --no-stream
+ID            NAME        CPU %       MEM USAGE / LIMIT  MEM %       NET IO             BLOCK IO      PIDS        CPU TIME      AVG CPU %
+0a599374e5af  minikube    16.91%      1.648GB / 2.048GB  80.49%      904.3MB / 366.5MB  0B / 72.19kB  673         42m6.208418s  16.91%
 
-25.3 
 
-2000/2000
-+---------------------------+----------------+
-| Variable_Name             | Variable_Value |
-+---------------------------+----------------+
-| Query_Processor_time_nsec | 182883924      |
-+---------------------------+----------------+
+Rules	                        200	2000	10000	50000	100000
+mysql_query_rules	            23	143	    837	    6967	33816
+mysql_query_rules_fast_routing	0.3	12	    97	    239	    435
 
-182
 
-10000/10000
-+---------------------------+----------------+
-| Variable_Name             | Variable_Value |
-+---------------------------+----------------+
-| Query_Processor_time_nsec | 8549483032     |
-+---------------------------+----------------+
 
-8549
+stg
 
-100000/100000
+➜  ~ gcloud compute instances list --project bigcommerce-staging --filter "(name ~ '^db-store-test-.*')"
+NAME                           ZONE           MACHINE_TYPE    PREEMPTIBLE  INTERNAL_IP    EXTERNAL_IP  STATUS
+db-store-test-master-f0b42c11  us-central1-a  n2d-standard-4               10.133.64.192               RUNNING
+db-store-test-read-71b8f954    us-central1-a  n2d-standard-4               10.133.64.193               RUNNING
+db-store-test-master-62a08f14  us-central1-b  n2d-standard-4               10.133.64.191               RUNNING
 
-+---------------------------+----------------+
-| Variable_Name             | Variable_Value |
-+---------------------------+----------------+
-| Query_Processor_time_nsec | 153470631457   |
-+---------------------------+----------------+
+➜  ~ gcloud compute instances list --project bigcommerce-staging --filter "(name ~ '^proxysql-test-.*')"
+NAME                ZONE           MACHINE_TYPE    PREEMPTIBLE  INTERNAL_IP    EXTERNAL_IP  STATUS
+proxysql-test-dwgh  us-central1-c  n2d-standard-2               10.133.64.156               RUNNING
+proxysql-test-zbkr  us-central1-f  n2d-standard-2               10.133.64.124               RUNNING
 
-153470
+[proxysql-test-dwgh][us-central1][14:20:20][(none)] mysql> select * from mysql_servers;
++--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
+| hostgroup_id | hostname                      | port | gtid_port | status | weight | compression | max_connections | max_replication_lag | use_ssl | max_latency_ms | comment        |
++--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
+| 0            | db-store-test-master-f0b42c11 | 3306 | 0         | ONLINE | 1      | 0           | 5000            | 90                  | 0       | 0              | mysql-master-1 |
+| 1            | db-store-test-read-71b8f954   | 3306 | 0         | ONLINE | 1      | 0           | 5000            | 90                  | 0       | 0              | mysql-slave-1  |
++--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
 
-50000/50000
-+---------------------------+----------------+
-| Variable_Name             | Variable_Value |
-+---------------------------+----------------+
-| Query_Processor_time_nsec | 103610048025   |
-+---------------------------+----------------+
+[proxysql-test-dwgh][us-central1][14:24:58][(none)] mysql> select * from mysql_replication_hostgroups;
++------------------+------------------+------------+---------+
+| writer_hostgroup | reader_hostgroup | check_type | comment |
++------------------+------------------+------------+---------+
+| 0                | 1                | read_only  |         |
++------------------+------------------+------------+---------+
 
-103610
+Rules	200	2000	10000	50000	100000
+mysql_query_rules	396	2300	10706	48960	117007
+mysql_query_rules_fast_routing	372	377	489	674	731
+
+![Minikube](pic_1.png)
+
+![GCP](pic_2.png)
