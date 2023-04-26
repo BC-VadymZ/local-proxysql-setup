@@ -239,7 +239,7 @@ Test results are following (numbers in milliseconds):
 
 ```
 Rules                           200     2000    10000   50000   100000
-mysql_query_rules               23      143	    837     6967    33816
+mysql_query_rules               23      143     837     6967    33816
 mysql_query_rules_fast_routing  0.3     12      97      239     435
 ```
 
