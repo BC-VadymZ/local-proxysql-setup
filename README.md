@@ -238,9 +238,9 @@ ID            NAME        CPU %       MEM USAGE / LIMIT  MEM %       NET IO     
 Test results are following (numbers in milliseconds):
 
 ```
-Rules	                        200	2000	10000	50000	100000
-mysql_query_rules	         23	143	    837	    6967	33816
-mysql_query_rules_fast_routing	0.3	12	    97	    239	    435
+Rules                           200     2000    10000   50000   100000
+mysql_query_rules               23      143	    837     6967    33816
+mysql_query_rules_fast_routing  0.3     12      97      239     435
 ```
 
 Got the graph:
@@ -271,9 +271,9 @@ proxysql-test-zbkr  us-central1-f  n2d-standard-2               10.133.64.124   
 Test results for GCP are:
 
 ```
-Rules	                        200	2000	10000	50000	100000
-mysql_query_rules	            396	2300	10706	48960	117007
-mysql_query_rules_fast_routing	372	377	    489	    674	    731
+Rules                           200 2000    10000   50000   100000
+mysql_query_rules               396 2300    10706   48960   117007
+mysql_query_rules_fast_routing  372 377     489     674     731
 ```
 
 Also the graph::
