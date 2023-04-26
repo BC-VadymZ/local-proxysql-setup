@@ -8,14 +8,6 @@ Tools used for sample deployment:
 - Minikube
 - Helm
 
-
-### Installing Kubectl
-
-#### Detailed install
-
-- Minikube on M1 pro without Docker desktop -> https://0to1.nl/post/minikube-m1-pro-issues/
-
-
 ### Installing Helm
 
 #### Detailed install
@@ -26,7 +18,7 @@ Tools used for sample deployment:
 
 ### Minikube
 
-Install minikube, podman
+Install minikube, podman and podman-desktop
 
 ```
 brew install minikube
@@ -61,6 +53,7 @@ following command in your terminal session:
 
 Machine "podman-machine-default" started successfully
 ```
+Configure minikube:
 
 ```
 minikube config set memory 6144
@@ -68,6 +61,8 @@ minikube config set cpus 2
 minikube config set disk-size 50000MB
 minikube config set vm-driver podman
 ```
+
+minikube need to be started with podman driver and por forfarding to localhost
 
 ```
 ➜  ~ minikube start --driver=podman --ports=127.0.0.1:30080:30080
@@ -105,7 +100,11 @@ minikube status
 
 ### Add dashboard
 
+Start minikube dashboard:
+
 ```
+➜  ~ minikube dashboard --url
+
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
 minikube addons enable dashboard
 
@@ -172,24 +171,11 @@ kubectl rollout restart deployment/proxysql-cluster-passive
 helm delete proxysql-cluster-controller
 helm delete  proxysql-cluster-passive
 ```
-##### Change node port to 30080
-
-```
- KUBE_EDITOR="nano" kubectl edit svc -n default proxysql-cluster-controller
-```
-
-```
-  ports:
-  - name: proxysql
-    nodePort: 30080
-    port: 6033
-    protocol: TCP
-```
 
 ##### Connect to ProxySQL 
 
 ```
-mysql -h127.0.0.1 -P30080 -uroot -proot
+mysql -h127.0.0.1 -P32760 -uroot -proot
 ```
 
 ## Useful commands
@@ -211,6 +197,7 @@ kubectl get deployment
 kubectl get pods --all-namespaces
 kubectl describe service <servicename>
 kubectl rollout restart deployment/proxysql-cluster
+KUBE_EDITOR="nano" kubectl edit svc -n default proxysql-cluster-controller
 ```
 
 ### Podman
@@ -237,31 +224,35 @@ minikube delete
 - https://proxysql.com/blog/new-schemaname-routing-algorithm/
 - https://github.com/bitnami/charts
 
-
+```
 ➜  ~ podman stats -a --no-stream
 ID            NAME        CPU %       MEM USAGE / LIMIT  MEM %       NET IO             BLOCK IO      PIDS        CPU TIME      AVG CPU %
 0a599374e5af  minikube    16.91%      1.648GB / 2.048GB  80.49%      904.3MB / 366.5MB  0B / 72.19kB  673         42m6.208418s  16.91%
+```
 
-
+```
 Rules	                        200	2000	10000	50000	100000
 mysql_query_rules	            23	143	    837	    6967	33816
 mysql_query_rules_fast_routing	0.3	12	    97	    239	    435
-
+```
 
 
 stg
 
+```
 ➜  ~ gcloud compute instances list --project bigcommerce-staging --filter "(name ~ '^db-store-test-.*')"
 NAME                           ZONE           MACHINE_TYPE    PREEMPTIBLE  INTERNAL_IP    EXTERNAL_IP  STATUS
 db-store-test-master-f0b42c11  us-central1-a  n2d-standard-4               10.133.64.192               RUNNING
 db-store-test-read-71b8f954    us-central1-a  n2d-standard-4               10.133.64.193               RUNNING
 db-store-test-master-62a08f14  us-central1-b  n2d-standard-4               10.133.64.191               RUNNING
-
+```
+```
 ➜  ~ gcloud compute instances list --project bigcommerce-staging --filter "(name ~ '^proxysql-test-.*')"
 NAME                ZONE           MACHINE_TYPE    PREEMPTIBLE  INTERNAL_IP    EXTERNAL_IP  STATUS
 proxysql-test-dwgh  us-central1-c  n2d-standard-2               10.133.64.156               RUNNING
 proxysql-test-zbkr  us-central1-f  n2d-standard-2               10.133.64.124               RUNNING
-
+```
+```
 [proxysql-test-dwgh][us-central1][14:20:20][(none)] mysql> select * from mysql_servers;
 +--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
 | hostgroup_id | hostname                      | port | gtid_port | status | weight | compression | max_connections | max_replication_lag | use_ssl | max_latency_ms | comment        |
@@ -269,17 +260,21 @@ proxysql-test-zbkr  us-central1-f  n2d-standard-2               10.133.64.124   
 | 0            | db-store-test-master-f0b42c11 | 3306 | 0         | ONLINE | 1      | 0           | 5000            | 90                  | 0       | 0              | mysql-master-1 |
 | 1            | db-store-test-read-71b8f954   | 3306 | 0         | ONLINE | 1      | 0           | 5000            | 90                  | 0       | 0              | mysql-slave-1  |
 +--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
-
+```
+```
 [proxysql-test-dwgh][us-central1][14:24:58][(none)] mysql> select * from mysql_replication_hostgroups;
 +------------------+------------------+------------+---------+
 | writer_hostgroup | reader_hostgroup | check_type | comment |
 +------------------+------------------+------------+---------+
 | 0                | 1                | read_only  |         |
 +------------------+------------------+------------+---------+
+```
 
+```
 Rules	200	2000	10000	50000	100000
 mysql_query_rules	396	2300	10706	48960	117007
 mysql_query_rules_fast_routing	372	377	489	674	731
+```
 
 ![Minikube](pic_1.png)
 
