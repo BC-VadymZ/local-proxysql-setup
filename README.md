@@ -217,12 +217,17 @@ podman machine start
 minikube start
 minikube delete
 ```
+## Testing locally difference in performance mysql_query_rules vs mysql_query_rules_fast_routing
 
-### Useful links
+To understand the performance implication of performing routing based on the number of rules. For every test, we configured ProxySQL setting the right number of rules: for 100 schemas we created 100 rules, for 1000 schema 1000 rules, etc.
 
-- https://www.youtube.com/watch?v=UCvgHO9TtMs
-- https://proxysql.com/blog/new-schemaname-routing-algorithm/
-- https://github.com/bitnami/charts
+At the end for run-test.sh script we are computing the value of status variable Query_Processor_time_nsec.
+
+Query_Processor_time_nsec : the time spent inside the Query Processor to determine what action needs to be taken with the query (internal module)
+
+### Locala machine
+
+Used for this test 4 cores of cpu and 2GB of memmroy:
 
 ```
 ➜  ~ podman stats -a --no-stream
@@ -230,14 +235,21 @@ ID            NAME        CPU %       MEM USAGE / LIMIT  MEM %       NET IO     
 0a599374e5af  minikube    16.91%      1.648GB / 2.048GB  80.49%      904.3MB / 366.5MB  0B / 72.19kB  673         42m6.208418s  16.91%
 ```
 
+Test results are following (numbers in milliseconds):
+
 ```
 Rules	                        200	2000	10000	50000	100000
-mysql_query_rules	            23	143	    837	    6967	33816
+mysql_query_rules	         23	143	    837	    6967	33816
 mysql_query_rules_fast_routing	0.3	12	    97	    239	    435
 ```
 
+Got the graph:
 
-stg
+![Minikube](pic_1.png)
+
+### Machine in GCP
+
+Used 3 configured databases on n2d-standard-4 machine type (prod like env):
 
 ```
 ➜  ~ gcloud compute instances list --project bigcommerce-staging --filter "(name ~ '^db-store-test-.*')"
@@ -246,36 +258,37 @@ db-store-test-master-f0b42c11  us-central1-a  n2d-standard-4               10.13
 db-store-test-read-71b8f954    us-central1-a  n2d-standard-4               10.133.64.193               RUNNING
 db-store-test-master-62a08f14  us-central1-b  n2d-standard-4               10.133.64.191               RUNNING
 ```
+
+And two proxysql servers, to check if replication of rules works or not:
+
 ```
 ➜  ~ gcloud compute instances list --project bigcommerce-staging --filter "(name ~ '^proxysql-test-.*')"
 NAME                ZONE           MACHINE_TYPE    PREEMPTIBLE  INTERNAL_IP    EXTERNAL_IP  STATUS
 proxysql-test-dwgh  us-central1-c  n2d-standard-2               10.133.64.156               RUNNING
 proxysql-test-zbkr  us-central1-f  n2d-standard-2               10.133.64.124               RUNNING
 ```
-```
-[proxysql-test-dwgh][us-central1][14:20:20][(none)] mysql> select * from mysql_servers;
-+--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
-| hostgroup_id | hostname                      | port | gtid_port | status | weight | compression | max_connections | max_replication_lag | use_ssl | max_latency_ms | comment        |
-+--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
-| 0            | db-store-test-master-f0b42c11 | 3306 | 0         | ONLINE | 1      | 0           | 5000            | 90                  | 0       | 0              | mysql-master-1 |
-| 1            | db-store-test-read-71b8f954   | 3306 | 0         | ONLINE | 1      | 0           | 5000            | 90                  | 0       | 0              | mysql-slave-1  |
-+--------------+-------------------------------+------+-----------+--------+--------+-------------+-----------------+---------------------+---------+----------------+----------------+
-```
-```
-[proxysql-test-dwgh][us-central1][14:24:58][(none)] mysql> select * from mysql_replication_hostgroups;
-+------------------+------------------+------------+---------+
-| writer_hostgroup | reader_hostgroup | check_type | comment |
-+------------------+------------------+------------+---------+
-| 0                | 1                | read_only  |         |
-+------------------+------------------+------------+---------+
-```
+
+Test results for GCP are:
 
 ```
-Rules	200	2000	10000	50000	100000
-mysql_query_rules	396	2300	10706	48960	117007
-mysql_query_rules_fast_routing	372	377	489	674	731
+Rules	                        200	2000	10000	50000	100000
+mysql_query_rules	            396	2300	10706	48960	117007
+mysql_query_rules_fast_routing	372	377	    489	    674	    731
 ```
 
-![Minikube](pic_1.png)
+Also the graph::
 
 ![GCP](pic_2.png)
+
+## Conclusion:
+
+- Around 10000 rules latency is growing up normal for simple mysql_query_rules, after its dramatically increases
+- mysql_query_rules_fast_routing for up to 10000 shards introducing less latency the mysql_query_rules routing algorithm, and it scales very well to 100k rules wth very small overhead
+- Minikube good local tool to build local performance test with different proxysql/mysql version before it's goes to enother enviropments
+
+### Useful links
+
+- https://www.youtube.com/watch?v=UCvgHO9TtMs
+- https://proxysql.com/blog/new-schemaname-routing-algorithm/
+- https://github.com/bitnami/charts
+- https://www.percona.com/blog/proxysql-rules-do-i-have-too-many/
